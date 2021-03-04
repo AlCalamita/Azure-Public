@@ -1,0 +1,79 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "scaleSetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the scale set to apply the domain join extension to"
+            }
+        },
+        "domainName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the domain to join"
+            }
+        },
+        "ouPath": {
+            "type": "string",
+            "metadata": {
+                "description": "DN of the OU to join"
+            }
+        },
+        "domainAndUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Domain and username to use to join to domain"
+            }
+        },
+        "domainJoinOptions": {
+            "type": "string",
+            "defaultValue": "3"
+        },
+        "domainJoinPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for user account used to join to domain"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "name": "[parameters('scaleSetName')]",
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "tags": {},
+            "properties": {
+                "virtualMachineProfile": {
+                    "extensionProfile": {
+                        "extensions": [
+                            {
+                                "name": "[concat('DomainJoin-', parameters('domainName'))]",
+                                "properties": {
+                                    "publisher": "Microsoft.Compute",
+                                    "type": "JsonADDomainExtension",
+                                    "typeHandlerVersion": "1.3",
+                                    "settings": {
+                                        "Name": "[parameters('domainName')]",
+                                        "OUPath": "[parameters('ouPath')]",
+                                        "User": "[parameters('domainAndUsername')]",
+                                        "Restart": "true",
+                                        "Options": "[parameters('domainJoinOptions')]"
+                                    },
+                                    "protectedsettings": {
+                                        "Password": "[parameters('domainJoinPassword')]"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+            
+        }
+    ],
+    "outputs": {}
+}
